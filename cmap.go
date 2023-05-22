@@ -52,9 +52,12 @@ func (m *CMap[T]) Get(key string) (T, bool) {
 	}
 }
 
-func (m *CMap[T]) GetOrSet(key string, value T) (T, bool) {
-	result, ok := m.cmap.LoadOrStore(key, value)
-	return result.(T), ok
+func (m *CMap[T]) GetOrSet(key string, value T) T {
+	result, isOld := m.cmap.LoadOrStore(key, value)
+	if !isOld {
+		m.count.Add(1)
+	}
+	return result.(T)
 }
 
 func (m *CMap[T]) Delete(key string) bool {

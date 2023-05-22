@@ -69,6 +69,26 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestGetOrSet(t *testing.T) {
+	m := New[Animal]()
+
+	// Set a missing element.
+	val := m.GetOrSet("Money", Animal{"elephant"})
+	if val.name != "elephant" {
+		t.Error("default item was not inserted.")
+	}
+
+	// Set a missing element.
+	oldVal := m.GetOrSet("Money", Animal{"lion"})
+	if oldVal.name != "elephant" {
+		t.Error("previous item was not returned")
+	}
+
+	if m.Count() != 1 {
+		t.Error("map should contain exactly one element.")
+	}
+}
+
 func TestHas(t *testing.T) {
 	m := New[Animal]()
 
