@@ -3,6 +3,7 @@ package cmap
 import (
 	"sort"
 	"strconv"
+	"sync"
 	"testing"
 )
 
@@ -139,6 +140,39 @@ func TestCount(t *testing.T) {
 
 	if m.Count() != 100 {
 		t.Error("Expecting 100 element within map.")
+	}
+}
+
+func TestAsyncCount(t *testing.T) {
+	m := New[Animal]()
+
+	var wg sync.WaitGroup
+	var size = 100
+	for i := 0; i < size; i++ {
+		wg.Add(1)
+		go func(i int) {
+			start := i * size
+			for j := start; j < start+size; j++ {
+				m.Set(strconv.Itoa(j), Animal{strconv.Itoa(j)})
+			}
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	for i := 0; i < size; i++ {
+		wg.Add(1)
+		go func(i int) {
+			start := i * size
+			for j := start; j < start+size; j++ {
+				m.Delete(strconv.Itoa(j))
+			}
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+
+	if m.Count() != 0 {
+		t.Errorf("Expecting 0 elements within map, got %d.", m.Count())
 	}
 }
 
