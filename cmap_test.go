@@ -12,14 +12,14 @@ type Animal struct {
 }
 
 func TestMapCreation(t *testing.T) {
-	m := New[string]()
+	m := New[string, string]()
 	if m.Count() != 0 {
 		t.Error("new map should be empty.")
 	}
 }
 
 func TestInsert(t *testing.T) {
-	m := New[Animal]()
+	m := New[string, Animal]()
 	elephant := Animal{"elephant"}
 	monkey := Animal{"monkey"}
 
@@ -32,7 +32,7 @@ func TestInsert(t *testing.T) {
 }
 
 func TestInsertAbsent(t *testing.T) {
-	m := New[Animal]()
+	m := New[string, Animal]()
 	elephant := Animal{"elephant"}
 	monkey := Animal{"monkey"}
 
@@ -43,7 +43,7 @@ func TestInsertAbsent(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	m := New[Animal]()
+	m := New[string, Animal]()
 
 	// Get a missing element.
 	val, ok := m.Get("Money")
@@ -71,7 +71,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetOrSet(t *testing.T) {
-	m := New[Animal]()
+	m := New[string, Animal]()
 
 	// Set a missing element.
 	val := m.GetOrSet("Money", Animal{"elephant"})
@@ -91,7 +91,7 @@ func TestGetOrSet(t *testing.T) {
 }
 
 func TestHas(t *testing.T) {
-	m := New[Animal]()
+	m := New[string, Animal]()
 
 	// Get a missing element.
 	if m.Has("Money") == true {
@@ -107,7 +107,7 @@ func TestHas(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-	m := New[Animal]()
+	m := New[string, Animal]()
 
 	monkey := Animal{"monkey"}
 	m.Set("monkey", monkey)
@@ -133,7 +133,7 @@ func TestRemove(t *testing.T) {
 }
 
 func TestCount(t *testing.T) {
-	m := New[Animal]()
+	m := New[string, Animal]()
 	for i := 0; i < 100; i++ {
 		m.Set(strconv.Itoa(i), Animal{strconv.Itoa(i)})
 	}
@@ -144,7 +144,7 @@ func TestCount(t *testing.T) {
 }
 
 func TestAsyncCount(t *testing.T) {
-	m := New[Animal]()
+	m := New[string, Animal]()
 
 	var wg sync.WaitGroup
 	var size = 100
@@ -177,7 +177,7 @@ func TestAsyncCount(t *testing.T) {
 }
 
 func TestIsEmpty(t *testing.T) {
-	m := New[Animal]()
+	m := New[string, Animal]()
 
 	if m.IsEmpty() == false {
 		t.Error("new map should be empty")
@@ -191,7 +191,7 @@ func TestIsEmpty(t *testing.T) {
 }
 
 func TestIterator(t *testing.T) {
-	m := New[Animal]()
+	m := New[string, Animal]()
 
 	// Insert 100 elements.
 	for i := 0; i < 100; i++ {
@@ -215,7 +215,7 @@ func TestIterator(t *testing.T) {
 }
 
 func TestBufferedIterator(t *testing.T) {
-	m := New[Animal]()
+	m := New[string, Animal]()
 
 	// Insert 100 elements.
 	for i := 0; i < 100; i++ {
@@ -239,7 +239,7 @@ func TestBufferedIterator(t *testing.T) {
 }
 
 func TestClear(t *testing.T) {
-	m := New[Animal]()
+	m := New[string, Animal]()
 
 	// Insert 100 elements.
 	for i := 0; i < 100; i++ {
@@ -254,7 +254,7 @@ func TestClear(t *testing.T) {
 }
 
 func TestConcurrent(t *testing.T) {
-	m := New[int]()
+	m := New[int, int]()
 	ch := make(chan int)
 	const iterations = 1000
 	var a [iterations]int
@@ -263,10 +263,10 @@ func TestConcurrent(t *testing.T) {
 	go func() {
 		for i := 0; i < iterations/2; i++ {
 			// Add item to map.
-			m.Set(strconv.Itoa(i), i)
+			m.Set(i, i)
 
 			// Retrieve item from map.
-			val, _ := m.Get(strconv.Itoa(i))
+			val, _ := m.Get(i)
 
 			// Write to channel inserted value.
 			ch <- val
@@ -276,10 +276,10 @@ func TestConcurrent(t *testing.T) {
 	go func() {
 		for i := iterations / 2; i < iterations; i++ {
 			// Add item to map.
-			m.Set(strconv.Itoa(i), i)
+			m.Set(i, i)
 
 			// Retrieve item from map.
-			val, _ := m.Get(strconv.Itoa(i))
+			val, _ := m.Get(i)
 
 			// Write to channel inserted value.
 			ch <- val
@@ -313,11 +313,11 @@ func TestConcurrent(t *testing.T) {
 }
 
 func TestKeys(t *testing.T) {
-	m := New[Animal]()
+	m := New[int, Animal]()
 
 	// Insert 100 elements.
 	for i := 0; i < 100; i++ {
-		m.Set(strconv.Itoa(i), Animal{strconv.Itoa(i)})
+		m.Set(i, Animal{strconv.Itoa(i)})
 	}
 
 	count := 0

@@ -5,16 +5,16 @@ import (
 	"sync/atomic"
 )
 
-type CMap[T any] struct {
+type CMap[K, V any] struct {
 	sync.Map
 	count atomic.Int64
 }
 
-func New[T any]() CMap[T] {
-	return CMap[T]{}
+func New[K, V any]() CMap[K, V] {
+	return CMap[K, V]{}
 }
 
-func (m *CMap[T]) SetIfAbsent(key string, value T) bool {
+func (m *CMap[K, V]) SetIfAbsent(key K, value V) bool {
 	if _, isOld := m.Map.LoadOrStore(key, value); !isOld {
 		m.count.Add(1)
 		return true
@@ -23,7 +23,7 @@ func (m *CMap[T]) SetIfAbsent(key string, value T) bool {
 	}
 }
 
-func (m *CMap[T]) Set(key string, value T) bool {
+func (m *CMap[K, V]) Set(key K, value V) bool {
 	if _, isOld := m.Map.Swap(key, value); !isOld {
 		m.count.Add(1)
 		return true
@@ -32,32 +32,32 @@ func (m *CMap[T]) Set(key string, value T) bool {
 	}
 }
 
-func (m *CMap[T]) Has(key string) bool {
+func (m *CMap[K, V]) Has(key K) bool {
 	_, ok := m.Map.Load(key)
 	return ok
 }
 
-func (m *CMap[T]) IsEmpty() bool {
+func (m *CMap[K, V]) IsEmpty() bool {
 	return m.Count() == 0
 }
 
-func (m *CMap[T]) Get(key string) (T, bool) {
+func (m *CMap[K, V]) Get(key K) (V, bool) {
 	if value, ok := m.Map.Load(key); ok {
-		return value.(T), true
+		return value.(V), true
 	} else {
-		return *new(T), false
+		return *new(V), false
 	}
 }
 
-func (m *CMap[T]) GetOrSet(key string, value T) T {
+func (m *CMap[K, V]) GetOrSet(key K, value V) V {
 	result, isOld := m.Map.LoadOrStore(key, value)
 	if !isOld {
 		m.count.Add(1)
 	}
-	return result.(T)
+	return result.(V)
 }
 
-func (m *CMap[T]) Delete(key string) bool {
+func (m *CMap[K, V]) Delete(key K) bool {
 	if _, isOld := m.Map.LoadAndDelete(key); isOld {
 		m.count.Add(-1)
 		return true
@@ -66,22 +66,22 @@ func (m *CMap[T]) Delete(key string) bool {
 	}
 }
 
-func (m *CMap[T]) Remove(key string) bool {
+func (m *CMap[K, V]) Remove(key K) bool {
 	return m.Delete(key)
 }
 
-type Entry[T any] struct {
-	Key string
-	Val T
+type Entry[K, V any] struct {
+	Key K
+	Val V
 }
 
-func (m *CMap[T]) Iter() chan Entry[T] {
-	ch := make(chan Entry[T])
+func (m *CMap[K, V]) Iter() chan Entry[K, V] {
+	ch := make(chan Entry[K, V])
 	go func() {
 		m.Map.Range(func(key, value any) bool {
-			ch <- Entry[T]{
-				Key: key.(string),
-				Val: value.(T),
+			ch <- Entry[K, V]{
+				Key: key.(K),
+				Val: value.(V),
 			}
 			return true
 		})
@@ -90,11 +90,11 @@ func (m *CMap[T]) Iter() chan Entry[T] {
 	return ch
 }
 
-func (m *CMap[T]) Keys() chan string {
-	ch := make(chan string)
+func (m *CMap[K, V]) Keys() chan K {
+	ch := make(chan K)
 	go func() {
 		m.Map.Range(func(key, _ any) bool {
-			ch <- key.(string)
+			ch <- key.(K)
 			return true
 		})
 		close(ch)
@@ -102,11 +102,11 @@ func (m *CMap[T]) Keys() chan string {
 	return ch
 }
 
-func (m *CMap[T]) Values() chan T {
-	ch := make(chan T)
+func (m *CMap[K, V]) Values() chan V {
+	ch := make(chan V)
 	go func() {
 		m.Map.Range(func(_, value any) bool {
-			ch <- value.(T)
+			ch <- value.(V)
 			return true
 		})
 		close(ch)
@@ -114,17 +114,17 @@ func (m *CMap[T]) Values() chan T {
 	return ch
 }
 
-func (m *CMap[T]) Count() int64 {
+func (m *CMap[K, V]) Count() int64 {
 	return m.count.Load()
 }
 
-func (m *CMap[T]) Len() int {
+func (m *CMap[K, V]) Len() int {
 	return int(m.Count())
 }
 
-func (m *CMap[T]) Clear() {
+func (m *CMap[K, V]) Clear() {
 	m.Map.Range(func(key, _ any) bool {
-		m.Delete(key.(string))
+		m.Delete(key.(K))
 		return true
 	})
 }
