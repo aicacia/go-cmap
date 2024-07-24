@@ -70,6 +70,12 @@ func (m *CMap[K, V]) Remove(key K) bool {
 	return m.Delete(key)
 }
 
+func (m *CMap[K, V]) Range(f func(key K, value V) bool) {
+	m.Map.Range(func(key, value any) bool {
+		return f(key.(K), value.(V))
+	})
+}
+
 type Entry[K, V any] struct {
 	Key K
 	Val V

@@ -190,6 +190,26 @@ func TestIsEmpty(t *testing.T) {
 	}
 }
 
+func TestRange(t *testing.T) {
+	m := New[string, Animal]()
+
+	// Insert 100 elements.
+	for i := 0; i < 100; i++ {
+		m.Set(strconv.Itoa(i), Animal{strconv.Itoa(i)})
+	}
+
+	counter := 0
+	// Iterate over elements.
+	m.Range(func(key string, value Animal) bool {
+		counter++
+		return true
+	})
+
+	if counter != 100 {
+		t.Error("We should have counted 100 elements.")
+	}
+}
+
 func TestIterator(t *testing.T) {
 	m := New[string, Animal]()
 
